@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	user_controller "go-chat/internal/user/controller"
+	"go-chat/pkg/zaplog"
 
 	_ "github.com/lib/pq" // Postgres driver
 
@@ -14,6 +15,10 @@ import (
 )
 
 func main() {
+
+	zapLogger := &zaplog.Zaplog{}
+	zapLogger.Init()
+	defer zapLogger.Logger.Sync() // 确保日志缓冲区在程序退出前刷新
 
 	dsn := "host=localhost port=5432 user=your_username password=your_password dbname=postgres sslmode=disable"
 
@@ -38,7 +43,7 @@ func main() {
 		MaxAge:           12 * time.Hour,
 	}))
 
-	userCtrl := user_controller.NewUserController(db)
+	userCtrl := user_controller.NewUserController(db, zapLogger)
 	userCtrl.SetUpRoutes(r)
 
 	r.Run(":8080")
